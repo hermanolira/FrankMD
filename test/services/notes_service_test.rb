@@ -67,6 +67,15 @@ class NotesServiceTest < ActiveSupport::TestCase
     assert_equal %w[alpha beta], folder_names
   end
 
+  test "list_tree skips broken symlinks instead of raising" do
+    create_test_note("real.md")
+    broken_link = @test_notes_dir.join("dangling.md")
+    File.symlink("/nonexistent/target.md", broken_link)
+
+    tree = @service.list_tree
+    assert_equal %w[real], tree.map { |item| item[:name] }
+  end
+
   test "list_tree ignores hidden files" do
     create_test_note(".hidden.md")
     create_test_note("visible.md")

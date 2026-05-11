@@ -199,7 +199,9 @@ class NotesService
   def build_tree(dir, relative_base = @base_path)
     # Keep folders in stable alphabetical order so drag/drop updates inside a folder
     # do not reorder it in the Explorer due to mtime changes.
-    entries = dir.children.sort_by do |p|
+    # Skip broken symlinks (exist? follows links and returns false when the target is missing)
+    # so a single dangling link does not take the whole tree down.
+    entries = dir.children.select(&:exist?).sort_by do |p|
       if p.directory?
         [ 0, p.basename.to_s.downcase ]
       else
